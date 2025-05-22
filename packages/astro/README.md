@@ -1,0 +1,1 @@
+# Astro plugin iconify svgmap

@@ -1,0 +1,68 @@
+{
+	"name": "vite-plugin-iconify-svgmap",
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"license": "MIT",
+	"version": "1.0.0",
+	"description": "",
+	"keywords": [
+		"vite",
+		"astro",
+		"astro-plugin",
+		"vite-plugin",
+		"svgmap",
+		"iconify"
+	],
+	"author": {
+		"name": "Stephan Randle",
+		"url": "https://stephanrandle.netlify.app/",
+		"email": "stephanrandle.dev@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stephansama/vite-plugin-iconify-svgmap"
+	},
+	"files": [
+		"client.d.ts",
+		"dist",
+		"package.json"
+	],
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./package.json": "./package.json",
+		"./client": {
+			"types": "./client.d.ts"
+		}
+	},
+	"scripts": {
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:ui": "vitest run --ui",
+		"test:ci": "vitest run --coverage",
+		"build": "tsup"
+	},
+	"devDependencies": {
+		"@iconify/types": "^2.0.0",
+		"@iconify/utils": "^2.3.0",
+		"tsup": "catalog:",
+		"vite": "catalog:"
+	},
+	"peerDependencies": {
+		"vite": "catalog:"
+	},
+	"packageManager": "pnpm@10.9.0",
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}
