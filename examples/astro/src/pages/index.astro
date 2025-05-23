@@ -1,4 +1,6 @@
 ---
+import { getIcon } from "vite-plugin-iconify-svgmap";
+
 import "../lib/test.ts";
 ---
 
@@ -12,5 +14,9 @@ import "../lib/test.ts";
 	</head>
 	<body style="background-color: #000; color: white">
 		<h1>Astro</h1>
+		<svg>
+			<use href={await getIcon("heroicons", "arrow-left-circle-20-solid")}
+			></use>
+		</svg>
 	</body>
 </html>
