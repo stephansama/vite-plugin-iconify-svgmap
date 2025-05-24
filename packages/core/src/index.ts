@@ -1,8 +1,9 @@
 import type { IconifyJSON } from "@iconify/types";
 import type { Plugin, ResolvedConfig } from "vite";
 
-import { iconToHTML, iconToSVG } from "@iconify/utils";
 import { loadCollectionFromFS } from "@iconify/utils/lib/loader/fs";
+import { iconToSVG } from "@iconify/utils/lib/svg/build";
+import { iconToHTML } from "@iconify/utils/lib/svg/html";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -94,7 +95,7 @@ export default function createPlugin(options?: Options): Plugin {
 				{},
 			);
 
-			return js`export default {};`;
+			return js`export default ${JSON.stringify(inMemoryCollections)};`;
 		},
 
 		async buildEnd() {
