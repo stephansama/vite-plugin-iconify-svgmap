@@ -3,6 +3,7 @@ import type { Plugin, ResolvedConfig } from "vite";
 
 import { loadCollectionFromFS } from "@iconify/utils/lib/loader/fs";
 import { iconToSVG } from "@iconify/utils/lib/svg/build";
+import { iconToHTML } from "@iconify/utils/lib/svg/html";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -165,8 +166,13 @@ function generateSprite(packIcons: IconifyJSON, loaded: string[]) {
 	let str = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">\n`;
 	for (const icon of loaded) {
 		const data = packIcons.icons[icon];
-		const svg = iconToSVG(data, { height: 16, width: 16 });
-		str += `<symbol id="${icon}">${svg.body}</symbol>`;
+		const svg = iconToSVG(data);
+		const html = iconToHTML(svg.body, svg.attributes);
+		str += html
+			.replaceAll("svg", "symbol")
+			.replace(/xmlns=\S+/, `id="${icon}"`)
+			.replace(/width=\S+/, "")
+			.replace(/height=\S+/, "");
 	}
 	str += `\n</svg>`;
 	return str;
