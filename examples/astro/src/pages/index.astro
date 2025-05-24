@@ -2,6 +2,14 @@
 import { getIcon } from "vite-plugin-iconify-svgmap";
 
 import "../lib/test.ts";
+
+const icons = await Promise.all(
+	[
+		["logos", "azure-icon"],
+		["octicon", "copilot-16"],
+		["heroicons", "newspaper-solid"],
+	].map(async ([pack, name]) => await getIcon(pack, name)),
+);
 ---
 
 <html lang="en">
@@ -14,8 +22,12 @@ import "../lib/test.ts";
 	</head>
 	<body>
 		<h1>Astro</h1>
-		<svg>
-			<use href={await getIcon("logos", "vercel-icon")}></use>
-		</svg>
+		{
+			icons.map((href) => (
+				<svg>
+					<use {href} />
+				</svg>
+			))
+		}
 	</body>
 </html>

@@ -5,3 +5,4 @@ catalog:
   tsup: ^8.3.6
   vite: ^6.3.5
   vite-plugin-inspect: ^11.1.0
+  typescript: ^5.8.3

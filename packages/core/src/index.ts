@@ -1,14 +1,18 @@
 import type { IconifyJSON } from "@iconify/types";
 import type { Plugin, ResolvedConfig } from "vite";
 
+import { getIconData } from "@iconify/utils/lib/icon-set/get-icon";
 import { loadCollectionFromFS } from "@iconify/utils/lib/loader/fs";
 import { iconToSVG } from "@iconify/utils/lib/svg/build";
 import { iconToHTML } from "@iconify/utils/lib/svg/html";
+import { replaceIDs } from "@iconify/utils/lib/svg/id";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-const PLUGIN_NAME = "vite-plugin-iconify-svgmap";
+import pkg from "../package.json";
+
+const PLUGIN_NAME = pkg.name;
 const virtualModuleId = "virtual:iconify-svgmap";
 const resolvedVirtualModuleId = "\0" + virtualModuleId;
 
@@ -33,10 +37,12 @@ export async function getIcon(pack: string, name: string) {
 	const newPack = currentRepresentation[pack]?.includes(name)
 		? currentRepresentation[pack]
 		: [
-				...(currentRepresentation[pack]
-					? currentRepresentation[pack]
-					: []),
-				name,
+				...new Set([
+					...(currentRepresentation[pack]
+						? currentRepresentation[pack]
+						: []),
+					name,
+				]),
 			];
 
 	const newRepresentation = { ...currentRepresentation, [pack]: newPack };
@@ -165,11 +171,15 @@ export function collectionHash(collections: IconifyJSON[]) {
 function generateSprite(packIcons: IconifyJSON, loaded: string[]) {
 	let str = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">\n`;
 	for (const icon of loaded) {
-		const data = packIcons.icons[icon];
+		const data = getIconData(packIcons, icon);
+		if (!data) {
+			console.error("unable to find icon", icon);
+			continue;
+		}
 		const svg = iconToSVG(data);
-		const html = iconToHTML(svg.body, svg.attributes);
+		const html = iconToHTML(replaceIDs(svg.body), svg.attributes);
 		str += html
-			.replaceAll("svg", "symbol")
+			.replace(/svg/g, "symbol")
 			.replace(/xmlns=\S+/, `id="${icon}"`)
 			.replace(/width=\S+/, "")
 			.replace(/height=\S+/, "");

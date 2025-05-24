@@ -13,6 +13,7 @@
 	},
 	"devDependencies": {
 		"@mcansh/vite-plugin-svg-sprite": "^0.6.0",
+		"typescript": "catalog:",
 		"vite-plugin-iconify-svgmap": "workspace:*",
 		"vite-plugin-inspect": "catalog:"
 	}
