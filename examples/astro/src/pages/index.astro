@@ -6,6 +6,8 @@ import "../lib/test.ts";
 const icons = await Promise.all(
 	[
 		["logos", "azure-icon"],
+		["logos", "alpinejs"],
+		["logos", "astro"],
 		["octicon", "copilot-16"],
 		["heroicons", "newspaper-solid"],
 	].map(async ([pack, name]) => await getIcon(pack, name)),
