@@ -9,6 +9,7 @@ export default defineConfig({
 			Inspect(),
 			iconifySvgmap({
 				iconifyRootDirectory: new URL("../ui/", import.meta.url),
+				outDir: "dist",
 			}),
 		],
 	},

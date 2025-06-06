@@ -2,7 +2,8 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
 	dts: true,
-	entry: ["src/index.ts"],
+	external: ["virtual:iconify-svgmap"],
+	entry: ["src/cli.ts", "src/index.ts"],
 	sourcemap: true,
 	splitting: false,
 	target: "esnext",

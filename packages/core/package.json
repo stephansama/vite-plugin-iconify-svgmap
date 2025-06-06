@@ -28,11 +28,19 @@
 		"dist",
 		"package.json"
 	],
+	"bin": {
+		"iconify-svgmap": "./dist/cli.js"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"require": "./dist/index.cjs"
+		},
+		"./get": {
+			"types": "./dist/get.d.ts",
+			"import": "./dist/get.js",
+			"require": "./dist/get.cjs"
 		},
 		"./package.json": "./package.json",
 		"./client": {
@@ -41,6 +49,7 @@
 	},
 	"scripts": {
 		"dev": "tsup --watch",
+		"prepare": "tsup",
 		"test": "vitest run",
 		"test:ui": "vitest run --ui",
 		"test:ci": "vitest run --coverage",

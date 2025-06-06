@@ -1,16 +1,17 @@
 import type { IconifyJSON } from "@iconify/types";
 import type { Plugin, ResolvedConfig } from "vite";
 
-import { getIconData } from "@iconify/utils/lib/icon-set/get-icon";
-import { loadCollectionFromFS } from "@iconify/utils/lib/loader/fs";
-import { iconToSVG } from "@iconify/utils/lib/svg/build";
-import { iconToHTML } from "@iconify/utils/lib/svg/html";
-import { replaceIDs } from "@iconify/utils/lib/svg/id";
-import { createHash } from "node:crypto";
 import fs from "node:fs";
-import path from "node:path";
 
 import pkg from "../package.json";
+import {
+	CONFIG_FILENAME,
+	defaultConfig,
+	LOADED_ICONS_FILENAME,
+} from "./const.ts";
+import { generateSprite, loadIcons } from "./util.ts";
+
+import type { Options } from "./type.ts";
 
 const PLUGIN_NAME = pkg.name;
 const virtualModuleId = "virtual:iconify-svgmap";
@@ -18,17 +19,8 @@ const resolvedVirtualModuleId = "\0" + virtualModuleId;
 
 const js = String.raw;
 
-export type Options = Partial<{
-	iconifyRootDirectory: URL;
-	outDir?: string;
-}>;
-
-const cacheFilename = path.resolve(
-	"node_modules/.vite/deps/iconifysvgmap.json",
-);
-
 export async function getIcon(pack: string, name: string) {
-	const current = fs.readFileSync(cacheFilename, {
+	const current = fs.readFileSync(LOADED_ICONS_FILENAME, {
 		encoding: "utf-8",
 		flag: "as+",
 	});
@@ -47,13 +39,15 @@ export async function getIcon(pack: string, name: string) {
 
 	const newRepresentation = { ...currentRepresentation, [pack]: newPack };
 
-	fs.writeFileSync(cacheFilename, JSON.stringify(newRepresentation));
+	fs.writeFileSync(LOADED_ICONS_FILENAME, JSON.stringify(newRepresentation));
 	return `/${pack}.svg#${name}`;
 }
 
 export default function createPlugin(options?: Options): Plugin {
 	let config: ResolvedConfig;
 	let inMemoryCollections: Record<string, IconifyJSON> = {};
+
+	fs.writeFileSync(CONFIG_FILENAME, JSON.stringify(options));
 
 	return {
 		name: PLUGIN_NAME,
@@ -69,80 +63,27 @@ export default function createPlugin(options?: Options): Plugin {
 
 		async load(id) {
 			if (id !== resolvedVirtualModuleId) return;
-			const text = fs.readFileSync(
-				new URL("./package.json", options?.iconifyRootDirectory),
-				{ encoding: "utf8" },
-			);
-			const { dependencies = {}, devDependencies = {} } =
-				JSON.parse(text);
-			const packages: string[] = [
-				...Object.keys(dependencies),
-				...Object.keys(devDependencies),
-			];
-			const collections = packages
-				.filter((name) => name.startsWith("@iconify-json/"))
-				.map((name) => name.replace("@iconify-json/", ""));
-
-			const allIcons: [string, IconifyJSON | undefined][] =
-				await Promise.all(
-					collections.map(async (collection) => [
-						collection,
-						await loadCollectionFromFS(
-							collection,
-							true,
-							"@iconify-json",
-							options?.iconifyRootDirectory?.toString(),
-						),
-					]),
-				);
-
-			inMemoryCollections = allIcons.reduce(
-				(prev, [name, value]) => ({ ...prev, [name]: value }),
-				{},
-			);
+			inMemoryCollections = await loadIcons(options || defaultConfig);
 
 			return js`export default ${JSON.stringify(inMemoryCollections)};`;
-		},
-
-		async buildEnd() {
-			const usageRaw = fs.readFileSync(cacheFilename, {
-				encoding: "utf-8",
-				flag: "as+",
-			});
-			const usage = JSON.parse(usageRaw || "{}");
-
-			for (const pack of Object.keys(usage)) {
-				const usedIcons = usage[pack];
-				const collection = inMemoryCollections[pack];
-				if (!collection) continue;
-
-				const source = generateSprite(collection, usedIcons || []);
-
-				this.emitFile({
-					type: "asset",
-					fileName: `${pack}.svg`,
-					source,
-				});
-			}
 		},
 
 		configureServer(server) {
 			server.middlewares.use(async (req, res, next) => {
 				for (const pack of Object.keys(inMemoryCollections)) {
-					console.log(pack);
 					if (req.url === `/${pack}.svg`) {
 						const loaded = JSON.parse(
-							fs.readFileSync(cacheFilename, {
+							fs.readFileSync(LOADED_ICONS_FILENAME, {
 								encoding: "utf8",
 								flag: "as+",
 							}) || "{}",
 						);
 						res.setHeader("Content-Type", "image/svg+xml");
-						const data = generateSprite(
+						const sprite = generateSprite(
 							inMemoryCollections[pack],
 							loaded[pack] || [],
 						);
-						return res.end(data);
+						return res.end(sprite);
 					}
 				}
 
@@ -150,49 +91,4 @@ export default function createPlugin(options?: Options): Plugin {
 			});
 		},
 	};
-}
-
-export function collectionHash(collections: IconifyJSON[]) {
-	const hash = createHash("sha256");
-
-	for (const collection of collections) {
-		hash.update(collection.prefix);
-		hash.update(
-			Object.keys(collection.icons)
-				.concat(Object.keys(collection.aliases ?? {}))
-				.sort()
-				.join(","),
-		);
-	}
-
-	return hash.digest("hex");
-}
-
-function generateSprite(packIcons: IconifyJSON, loaded: string[]) {
-	let str = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">\n`;
-	for (const icon of loaded) {
-		const data = getIconData(packIcons, icon);
-		if (!data) {
-			console.error("unable to find icon", icon);
-			continue;
-		}
-		const svg = iconToSVG(data);
-		const html = iconToHTML(replaceIDs(svg.body), svg.attributes);
-		str += html
-			.replace(/svg/g, "symbol")
-			.replace(/xmlns=\S+/, `id="${icon}"`)
-			.replace(/width=\S+/, "")
-			.replace(/height=\S+/, "");
-	}
-	str += `\n</svg>`;
-	return str;
-}
-
-async function tryGetHash(path: URL): Promise<string | void> {
-	try {
-		const text = fs.readFileSync(path, { encoding: "utf-8" });
-		return text.split("\n", 3)[1].replace("// ", "");
-	} catch {
-		console.error("unable to get hash");
-	}
 }
