@@ -2,6 +2,7 @@ import type { IconifyJSON } from "@iconify/types";
 import type { Plugin, ResolvedConfig } from "vite";
 
 import fs from "node:fs";
+import path from "node:path";
 
 import pkg from "../package.json";
 import {
@@ -19,35 +20,11 @@ const resolvedVirtualModuleId = "\0" + virtualModuleId;
 
 const js = String.raw;
 
-export async function getIcon(pack: string, name: string) {
-	const current = fs.readFileSync(LOADED_ICONS_FILENAME, {
-		encoding: "utf-8",
-		flag: "as+",
-	});
-
-	const currentRepresentation = JSON.parse(current || "{}");
-	const newPack = currentRepresentation[pack]?.includes(name)
-		? currentRepresentation[pack]
-		: [
-				...new Set([
-					...(currentRepresentation[pack]
-						? currentRepresentation[pack]
-						: []),
-					name,
-				]),
-			];
-
-	const newRepresentation = { ...currentRepresentation, [pack]: newPack };
-
-	fs.writeFileSync(LOADED_ICONS_FILENAME, JSON.stringify(newRepresentation));
-	return `/${pack}.svg#${name}`;
-}
-
 export default function createPlugin(options?: Options): Plugin {
 	let config: ResolvedConfig;
 	let inMemoryCollections: Record<string, IconifyJSON> = {};
 
-	fs.writeFileSync(CONFIG_FILENAME, JSON.stringify(options));
+	fs.writeFileSync(path.resolve(CONFIG_FILENAME), JSON.stringify(options));
 
 	return {
 		name: PLUGIN_NAME,
@@ -73,10 +50,13 @@ export default function createPlugin(options?: Options): Plugin {
 				for (const pack of Object.keys(inMemoryCollections)) {
 					if (req.url === `/${pack}.svg`) {
 						const loaded = JSON.parse(
-							fs.readFileSync(LOADED_ICONS_FILENAME, {
-								encoding: "utf8",
-								flag: "as+",
-							}) || "{}",
+							fs.readFileSync(
+								path.resolve(LOADED_ICONS_FILENAME),
+								{
+									encoding: "utf8",
+									flag: "as+",
+								},
+							) || "{}",
 						);
 						res.setHeader("Content-Type", "image/svg+xml");
 						const sprite = generateSprite(
