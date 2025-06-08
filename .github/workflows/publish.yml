@@ -34,6 +34,6 @@ jobs:
           cache: "pnpm"
       - name: 📦 Installing dependencies
         run: pnpm install
-      - run: pnpm publish --filter core
+      - run: pnpm publish --filter vite-plugin-iconify-svgmap
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
