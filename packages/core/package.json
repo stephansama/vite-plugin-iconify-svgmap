@@ -50,6 +50,7 @@
 	"scripts": {
 		"dev": "tsup --watch",
 		"prepare": "tsup",
+		"prepublish": "tsup",
 		"test": "vitest run",
 		"test:ui": "vitest run --ui",
 		"test:ci": "vitest run --coverage",
