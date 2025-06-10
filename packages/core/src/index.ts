@@ -10,7 +10,7 @@ import {
 	defaultConfig,
 	LOADED_ICONS_FILENAME,
 } from "./const.ts";
-import { generateSprite, loadIcons } from "./util.ts";
+import { buildEnd, generateSprite, loadIcons } from "./util.ts";
 
 import type { Options } from "./type.ts";
 
@@ -19,6 +19,37 @@ const virtualModuleId = "virtual:iconify-svgmap";
 const resolvedVirtualModuleId = "\0" + virtualModuleId;
 
 const js = String.raw;
+
+import type { AstroIntegration } from "astro";
+
+export function createIntegration(opts: Options = {}): AstroIntegration {
+	return {
+		name: "astro-icon",
+		hooks: {
+			"astro:config:setup"({ updateConfig, config, logger }) {
+				updateConfig({ vite: { plugins: [createPlugin(opts)] } });
+			},
+			async "astro:build:done"(o) {
+				console.log("starting build done");
+
+				const configFile = fs.readFileSync(
+					path.resolve(CONFIG_FILENAME),
+					{ encoding: "utf8" },
+				);
+				const options =
+					JSON.parse(configFile || "false") || defaultConfig;
+				const usage = JSON.parse(
+					fs.readFileSync(path.resolve(LOADED_ICONS_FILENAME), {
+						encoding: "utf8",
+					}) || "{}",
+				);
+				console.log(usage);
+				const icons = await loadIcons(opts);
+				buildEnd(icons, usage, options);
+			},
+		},
+	};
+}
 
 export default function createPlugin(options?: Options): Plugin {
 	let config: ResolvedConfig;

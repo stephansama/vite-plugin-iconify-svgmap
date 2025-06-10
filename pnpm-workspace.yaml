@@ -2,6 +2,7 @@ packages:
   - examples/*
   - packages/*
 catalog:
+  astro: ^5.7.13
   tsup: ^8.3.6
   vite: ^6.3.5
   vite-plugin-inspect: ^11.1.0

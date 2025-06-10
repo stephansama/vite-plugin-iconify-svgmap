@@ -5,12 +5,11 @@
 	"scripts": {
 		"astro": "astro",
 		"build": "astro build",
-		"postbuild": "iconify-svgmap",
 		"dev": "astro dev --open --port 4646",
 		"preview": "astro preview"
 	},
 	"dependencies": {
-		"astro": "^5.7.13"
+		"astro": "catalog:"
 	},
 	"devDependencies": {
 		"@mcansh/vite-plugin-svg-sprite": "^0.6.0",
