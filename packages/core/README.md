@@ -1,7 +1,4 @@
 # Vite Plugin Iconify SVG map
 
-## This project is a work in progress
-
-## Notes
-
-> only works in metaframeworks
+> [!CAUTION]
+> This package is deprecated please use the scoped package [`@stephansama/astro-iconify-svgmap`](https://github.com/stephansama/packages/tree/main/packages/astro-iconify-svgmap)

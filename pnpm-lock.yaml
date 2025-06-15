@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    astro:
+      specifier: ^5.7.13
+      version: 5.7.13
     tsup:
       specifier: ^8.3.6
       version: 8.5.0
@@ -60,7 +63,7 @@ importers:
   examples/astro:
     dependencies:
       astro:
-        specifier: ^5.7.13
+        specifier: 'catalog:'
         version: 5.7.13(@types/node@22.15.20)(rollup@4.41.0)(typescript@5.8.3)(yaml@2.8.0)
     devDependencies:
       '@mcansh/vite-plugin-svg-sprite':
@@ -140,7 +143,7 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0
       astro:
-        specifier: ^5.7.13
+        specifier: 'catalog:'
         version: 5.7.13(@types/node@22.15.20)(rollup@4.41.0)(typescript@5.8.3)(yaml@2.8.0)
       tsup:
         specifier: 'catalog:'
